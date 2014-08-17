@@ -3,6 +3,8 @@ package android.com.lights;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.WearableListenerService;
@@ -24,6 +26,18 @@ public class DataListener extends WearableListenerService {
     public void onPeerConnected(Node peer){
         Toast.makeText(this,"onPeerConnected",Toast.LENGTH_LONG).show();
         Log.d(TAG, "onPeerConnected");
+    }
+
+    @Override
+    public void onDataChanged(DataEventBuffer dataEvents) {
+        Log.d(TAG, "onDataChanged"); 
+        for (DataEvent event : dataEvents) {
+            if (event.getType() == DataEvent.TYPE_DELETED) {
+                Log.d(TAG, "DataItem deleted: " + event.getDataItem().getUri());
+            } else if (event.getType() == DataEvent.TYPE_CHANGED) {
+                Log.d(TAG, "DataItem changed: " + event.getDataItem().getUri());
+            }
+        }
     }
 
     @Override
