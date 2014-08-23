@@ -10,20 +10,23 @@ import android.view.View;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.Wearable;
 
 
-public class Main extends ActionBarActivity {
+public class Main extends ActionBarActivity implements
+        GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
 
     private static final String TAG = Main.class.getSimpleName() ;
+    private final String PATH = "/start/Main";
     private final String COUNT_KEY = "key";
-    int count = 0;
+    Integer count = 0;
     GoogleApiClient mGoogleApiClient;
+    public static Node watchNode;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,25 +43,8 @@ public class Main extends ActionBarActivity {
     }
 
     public void onClick(View v){
-         final GoogleApiClient mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-                    @Override
-                    public void onConnected(Bundle connectionHint) {
-                        Log.d(TAG, "onConnected: " + connectionHint);
-                        // Now you can use the data layer API
-                        sendData();
-                    }
-                    @Override
-                    public void onConnectionSuspended(int cause) {
-                        Log.d(TAG, "onConnectionSuspended: " + cause);
-                    }
-                })
-                .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(ConnectionResult result) {
-                        Log.d(TAG, "onConnectionFailed: " + result);
-                    }
-                })
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this).addOnConnectionFailedListener(this)
                 .addApi(Wearable.API)
                 .build();
 
@@ -67,19 +53,22 @@ public class Main extends ActionBarActivity {
     }
 
     public void sendData() {
-        Log.d(TAG, "sending Data to wearable");
-        PutDataMapRequest dataMap = PutDataMapRequest.create("/count");
-        dataMap.getDataMap().putInt(COUNT_KEY, count++);
-        PutDataRequest request = dataMap.asPutDataRequest();
-        ResultCallback<DataApi.DataItemResult> rCallback = new ResultCallback<DataApi.DataItemResult>() {
+
+        String payload = "Payload";
+        PendingResult pendingResult = Wearable.MessageApi.sendMessage(
+                mGoogleApiClient, Main.watchNode.getId(), PATH, payload.getBytes());
+
+        pendingResult.setResultCallback(new ResultCallback() {
             @Override
-            public void onResult(DataApi.DataItemResult dataItemResult) {
-                    Log.d(TAG, "yay! this happened.....");
+            public void onResult(Result result) {
+                if (!result.getStatus().isSuccess()) {
+                    Log.e(TAG, "ERROR: failed to send Message: " + result.getStatus());
+                }
+                else {
+                    Log.d(TAG, "hoorrray!");
+                }
             }
-        };
-        PendingResult<DataApi.DataItemResult> pendingResult = Wearable.DataApi
-                .putDataItem(mGoogleApiClient, request);
-        pendingResult.setResultCallback(rCallback);
+        });
 
     }
     @Override
@@ -92,5 +81,22 @@ public class Main extends ActionBarActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d(TAG, "onConnected: " + bundle);
+        sendData();
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Log.d(TAG, "onConnectionSuspended: " + i);
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Log.d(TAG, "onConnectionFailed: " + connectionResult);
     }
 }

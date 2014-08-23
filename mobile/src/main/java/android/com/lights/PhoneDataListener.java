@@ -10,27 +10,27 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.WearableListenerService;
 
 /**
- * Created by rizk on 8/17/14.
+ * Created by rizk on 8/23/14.
  */
-public class DataListener extends WearableListenerService {
-
-    private final static String TAG = DataListener.class.getSimpleName();
+public class PhoneDataListener extends WearableListenerService{
+    private final static String TAG = PhoneDataListener.class.getSimpleName();
 
     @Override
     public void onMessageReceived(MessageEvent msgEvent){
-        Toast.makeText(this,"onMessageReceived", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "onMessageRecieved", Toast.LENGTH_LONG).show();
         Log.d(TAG, "onMessageReceived");
     }
 
     @Override
     public void onPeerConnected(Node peer){
         Log.d(TAG, "onPeerConnected");
-        Toast.makeText(this,"onPeerConnected", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "onPeerConnected", Toast.LENGTH_LONG).show();
+        Main.watchNode = peer;
     }
 
     @Override
     public void onDataChanged(DataEventBuffer dataEvents) {
-        Log.d(TAG, "onDataChanged"); 
+        Log.d(TAG, "onDataChanged");
         for (DataEvent event : dataEvents) {
             if (event.getType() == DataEvent.TYPE_DELETED) {
                 Log.d(TAG, "DataItem deleted: " + event.getDataItem().getUri());
