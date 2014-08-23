@@ -28,7 +28,7 @@ public class PhoneDataListener extends WearableListenerService{
         Main.watchNode = peer;
     }
 
-    @Override
+    @Overrigde
     public void onDataChanged(DataEventBuffer dataEvents) {
         Log.d(TAG, "onDataChanged");
         for (DataEvent event : dataEvents) {
