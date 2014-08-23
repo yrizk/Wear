@@ -13,7 +13,10 @@ import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
+
+import java.util.ArrayList;
 
 
 public class Main extends ActionBarActivity implements
@@ -26,6 +29,7 @@ public class Main extends ActionBarActivity implements
     Integer count = 0;
     GoogleApiClient mGoogleApiClient;
     public static Node watchNode;
+    private ArrayList<String> connectedIds;
 
 
     @Override
@@ -52,24 +56,39 @@ public class Main extends ActionBarActivity implements
 
     }
 
-    public void sendData() {
 
-        String payload = "Payload";
-        PendingResult pendingResult = Wearable.MessageApi.sendMessage(
-                mGoogleApiClient, Main.watchNode.getId(), PATH, payload.getBytes());
+    private void sendData() {
+        final PendingResult<NodeApi.GetConnectedNodesResult> connectedResults =
+                Wearable.NodeApi.getConnectedNodes(mGoogleApiClient);
 
-        pendingResult.setResultCallback(new ResultCallback() {
+        connectedResults.setResultCallback(new ResultCallback<NodeApi.GetConnectedNodesResult>() {
             @Override
-            public void onResult(Result result) {
-                if (!result.getStatus().isSuccess()) {
-                    Log.e(TAG, "ERROR: failed to send Message: " + result.getStatus());
-                }
-                else {
-                    Log.d(TAG, "hoorrray!");
+            public void onResult(NodeApi.GetConnectedNodesResult getConnectedNodesResult) {
+                if (getConnectedNodesResult.getStatus().isSuccess()) {
+                    connectedIds = new ArrayList<String>();
+                    for (Node n : getConnectedNodesResult.getNodes()) {
+                        connectedIds.add(n.getId());
+                    }
+
+                    String payload = "Payload";
+
+                    PendingResult pendingResult = Wearable.MessageApi.sendMessage(
+                            mGoogleApiClient, connectedIds.get(0), PATH, payload.getBytes());
+
+                    pendingResult.setResultCallback(new ResultCallback() {
+                        @Override
+                        public void onResult(Result result) {
+                            if (!result.getStatus().isSuccess()) {
+                                Log.e(TAG, "ERROR: failed to send Message: " + result.getStatus());
+                            } else {
+                                Log.d(TAG, "hoorrray!");
+                            }
+                        }
+                    });
                 }
             }
-        });
 
+        });
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
