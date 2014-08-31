@@ -1,5 +1,7 @@
 package android.com.lights;
 
+import android.content.ComponentName;
+import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -25,6 +27,13 @@ public class DataListener extends WearableListenerService {
     @Override
     public void onPeerConnected(Node peer){
         Log.d(TAG, "onPeerConnected");
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        ComponentName cn = new ComponentName(this, WatchMain.class);
+        intent.setComponent(cn);
+        startActivity(intent);
         Toast.makeText(this,"onPeerConnected", Toast.LENGTH_LONG).show();
     }
 
